@@ -1,35 +1,40 @@
 package main
 
 import (
-	"akubisa/pkg/database"
-	"net/http"
+	"log"
+	"os"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"akubisa/internal/shared/database"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Initialize Database
-	database.InitDB()
+	_ = godotenv.Load()
 
-	// Initialize Echo
-	e := echo.New()
+	db, err := database.NewPostgresConnection(
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+	)
 
-	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// Routes
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Welcome to Akubisa API!")
-	})
+	app := fiber.New()
 
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{
-			"status": "UP",
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"success": true,
+			"message": "API Running",
 		})
 	})
 
-	// Start server
-	e.Logger.Fatal(e.Start(":8080"))
+	_ = db
+
+	log.Fatal(app.Listen(":" + os.Getenv("APP_PORT")))
 }
