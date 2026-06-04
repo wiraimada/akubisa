@@ -6,6 +6,7 @@ import (
 
 	"akubisa/internal/routes"
 	"akubisa/internal/shared/database"
+	"akubisa/internal/shared/database/seeders" // Import the seeders package
 	"akubisa/pkg/logger"
 	"akubisa/pkg/middleware"
 
@@ -30,6 +31,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Run seeders
+	seeders.SeedLessons(db)
 
 	app := fiber.New()
 
