@@ -1,19 +1,35 @@
 package middleware
 
 import (
+	"strings"
+
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
-	echojwt "github.com/labstack/echo-jwt/v4"
-	"github.com/labstack/echo/v4"
 )
 
-func JWTMiddleware(secret string) echo.MiddlewareFunc {
-	config := echojwt.Config{
-		SigningKey: []byte(secret),
-	}
-	return echojwt.WithConfig(config)
-}
+func JWTMiddleware(secret string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		authHeader := c.Get("Authorization")
+		if authHeader == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "missing token"})
+		}
 
-type JWTClaims struct {
-	UserID uint `json:"user_id"`
-	jwt.RegisteredClaims
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "invalid token format"})
+		}
+
+		tokenString := parts[1]
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			return []byte(secret), nil
+		})
+
+		if err != nil || !token.Valid {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "invalid token"})
+		}
+
+		claims := token.Claims.(jwt.MapClaims)
+		c.Locals("user_id", claims["user_id"])
+		return c.Next()
+	}
 }

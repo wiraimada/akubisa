@@ -7,6 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"akubisa/internal/shared/utils"
+	"akubisa/pkg/logger"
 )
 
 type Service struct {
@@ -36,6 +37,7 @@ func (s *Service) Register(req RegisterRequest) error {
 func (s *Service) Login(req LoginRequest) (string, error) {
 	user, err := s.repo.FindByEmail(req.Email)
 	if err != nil {
+		logger.Logger.Warn("user_login", "email", req.Email, "result", "failed", "error", "user not found")
 		return "", errors.New("invalid credentials")
 	}
 
@@ -45,6 +47,7 @@ func (s *Service) Login(req LoginRequest) (string, error) {
 	)
 
 	if err != nil {
+		logger.Logger.Warn("user_login", "email", req.Email, "result", "failed", "error", "invalid password")
 		return "", errors.New("invalid credentials")
 	}
 
@@ -57,5 +60,6 @@ func (s *Service) Login(req LoginRequest) (string, error) {
 		return "", err
 	}
 
+	logger.Logger.Info("user_login", "user_id", user.ID.String(), "result", "success")
 	return token, nil
 }
