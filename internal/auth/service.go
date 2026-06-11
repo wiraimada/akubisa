@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"os"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -11,11 +10,15 @@ import (
 )
 
 type Service struct {
-	repo *Repository
+	repo      Repository
+	jwtSecret string
 }
 
-func NewService(repo *Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo Repository, jwtSecret string) *Service {
+	return &Service{
+		repo:      repo,
+		jwtSecret: jwtSecret,
+	}
 }
 
 func (s *Service) Register(req RegisterRequest) error {
@@ -53,7 +56,7 @@ func (s *Service) Login(req LoginRequest) (string, error) {
 
 	token, err := utils.GenerateJWT(
 		user.ID.String(),
-		os.Getenv("JWT_SECRET"),
+		s.jwtSecret,
 	)
 
 	if err != nil {

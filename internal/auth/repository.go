@@ -1,61 +1,34 @@
 package auth
 
 import (
-	"context"
-
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
-type Repository struct {
-	db *pgxpool.Pool
+type Repository interface {
+	CreateUser(user User) error
+	FindByEmail(email string) (*User, error)
 }
 
-func NewRepository(db *pgxpool.Pool) *Repository {
-	return &Repository{db: db}
+type repository struct {
+	db *gorm.DB
 }
 
-func (r *Repository) CreateUser(user User) error {
-	query := `
-        INSERT INTO users(id, full_name, email, password_hash, role)
-        VALUES($1,$2,$3,$4,$5)
-    `
-
-	_, err := r.db.Exec(
-		context.Background(),
-		query,
-		uuid.New(),
-		user.FullName,
-		user.Email,
-		user.PasswordHash,
-		user.Role,
-	)
-
-	return err
+func NewRepository(db *gorm.DB) Repository {
+	return &repository{db: db}
 }
 
-func (r *Repository) FindByEmail(email string) (*User, error) {
-	query := `
-        SELECT id, full_name, email, password_hash, role
-        FROM users
-        WHERE email=$1
-    `
+func (r *repository) CreateUser(user User) error {
+	if user.ID == uuid.Nil {
+		user.ID = uuid.New()
+	}
+	return r.db.Create(&user).Error
+}
 
-	row := r.db.QueryRow(context.Background(), query, email)
-
+func (r *repository) FindByEmail(email string) (*User, error) {
 	var user User
-
-	err := row.Scan(
-		&user.ID,
-		&user.FullName,
-		&user.Email,
-		&user.PasswordHash,
-		&user.Role,
-	)
-
-	if err != nil {
+	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
 	}
-
 	return &user, nil
 }

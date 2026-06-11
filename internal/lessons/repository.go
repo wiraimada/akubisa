@@ -1,6 +1,7 @@
 package lessons
 
 import (
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -104,6 +105,9 @@ func (r *repository) SubmitQuiz(quizID uuid.UUID, childID uuid.UUID, submissions
 		}
 	}
 
+	if totalQuestions == 0 {
+		return nil, errors.New("quiz has no questions")
+	}
 	score := (correctAnswersCount * 100) / totalQuestions
 	completed := false
 	var completedAt *time.Time

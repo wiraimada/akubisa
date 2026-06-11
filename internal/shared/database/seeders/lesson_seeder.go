@@ -2,10 +2,8 @@ package seeders
 
 import (
 	"log"
-	"time"
 
 	"akubisa/internal/lessons" // Import the lessons package to use Lesson, Quiz, etc.
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -131,76 +129,4 @@ func SeedLessons(db *gorm.DB) {
 		}
 	}
 	log.Println("Lessons seeding completed.")
-}
-
-// BeforeCreate hook to generate UUIDs
-func (l *lessons.Lesson) BeforeCreate(tx *gorm.DB) (err error) {
-	if l.ID == uuid.Nil {
-		l.ID = uuid.New()
-	}
-	l.CreatedAt = time.Now()
-	l.UpdatedAt = time.Now()
-	return
-}
-
-func (q *lessons.Quiz) BeforeCreate(tx *gorm.DB) (err error) {
-	if q.ID == uuid.Nil {
-		q.ID = uuid.New()
-	}
-	q.CreatedAt = time.Now()
-	q.UpdatedAt = time.Now()
-	return
-}
-
-func (qq *lessons.QuizQuestion) BeforeCreate(tx *gorm.DB) (err error) {
-	if qq.ID == uuid.Nil {
-		qq.ID = uuid.New()
-	}
-	qq.CreatedAt = time.Now()
-	qq.UpdatedAt = time.Now()
-	return
-}
-
-func (qa *lessons.QuizAnswer) BeforeCreate(tx *gorm.DB) (err error) {
-	if qa.ID == uuid.Nil {
-		qa.ID = uuid.New()
-	}
-	qa.CreatedAt = time.Now()
-	qa.UpdatedAt = time.Now()
-	return
-}
-
-func (p *lessons.Progress) BeforeCreate(tx *gorm.DB) (err error) {
-	if p.ID == uuid.Nil {
-		p.ID = uuid.New()
-	}
-	p.CreatedAt = time.Now()
-	p.UpdatedAt = time.Now()
-	return
-}
-
-// BeforeUpdate hook to update UpdatedAt
-func (l *lessons.Lesson) BeforeUpdate(tx *gorm.DB) (err error) {
-	l.UpdatedAt = time.Now()
-	return
-}
-
-func (q *lessons.Quiz) BeforeUpdate(tx *gorm.DB) (err error) {
-	q.UpdatedAt = time.Now()
-	return
-}
-
-func (qq *lessons.QuizQuestion) BeforeUpdate(tx *gorm.DB) (err error) {
-	qq.UpdatedAt = time.Now()
-	return
-}
-
-func (qa *lessons.QuizAnswer) BeforeUpdate(tx *gorm.DB) (err error) {
-	qa.UpdatedAt = time.Now()
-	return
-}
-
-func (p *lessons.Progress) BeforeUpdate(tx *gorm.DB) (err error) {
-	p.UpdatedAt = time.Now()
-	return
 }

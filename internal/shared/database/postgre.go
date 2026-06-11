@@ -7,6 +7,7 @@ import (
 
 	"akubisa/internal/auth"
 	"akubisa/internal/lessons" // Import lessons models
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -24,6 +25,11 @@ func NewPostgresConnection(host, port, user, password, dbname string) (*gorm.DB,
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	// Enable the uuid-ossp extension so uuid_generate_v4() column defaults resolve.
+	if err = db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`).Error; err != nil {
+		return nil, fmt.Errorf("failed to enable uuid-ossp extension: %w", err)
 	}
 
 	// AutoMigrate all models

@@ -1,0 +1,205 @@
+{
+  "info": {
+    "name": "Akubisa API",
+    "_postman_id": "a1b2c3d4-0000-4000-8000-akubisa00001",
+    "description": "Postman collection untuk semua endpoint API Akubisa (Auth, Lessons, Quizzes, Health).\n\nCara pakai:\n1. Pilih environment / set variable `baseUrl` (default: http://localhost:8080).\n2. Jalankan **Auth > Login** — `access_token` otomatis disimpan ke variable `token`.\n3. Endpoint lain otomatis memakai Bearer `{{token}}` jika diperlukan.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lessonId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "quizId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "childId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Cek status API. Mengembalikan `{ success: true, message: \"API Running\" }`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "Mendaftarkan user baru (role default: `parent`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Simpan access_token ke collection variable `token`",
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.data && json.data.access_token) {",
+                  "        pm.collectionVariables.set('token', json.data.access_token);",
+                  "        console.log('Token tersimpan ke variable `token`.');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Login dan mendapatkan JWT access token. Token otomatis disimpan ke variable `token`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Lessons",
+      "item": [
+        {
+          "name": "List Lessons",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lessons",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lessons"]
+            },
+            "description": "Mengambil semua lesson beserta quizzes, questions, dan answers (di-preload)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Lesson By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lessons/{{lessonId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lessons", "{{lessonId}}"]
+            },
+            "description": "Mengambil detail satu lesson berdasarkan ID (UUID). Set variable `lessonId` terlebih dahulu."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Quizzes",
+      "item": [
+        {
+          "name": "Submit Quiz",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"child_id\": \"{{childId}}\",\n  \"submissions\": [\n    {\n      \"QuestionID\": \"00000000-0000-0000-0000-000000000000\",\n      \"AnswerIDs\": [\"00000000-0000-0000-0000-000000000000\"],\n      \"AnswerText\": \"\"\n    },\n    {\n      \"QuestionID\": \"00000000-0000-0000-0000-000000000000\",\n      \"AnswerIDs\": [],\n      \"AnswerText\": \"D\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/quizzes/{{quizId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "quizzes", "{{quizId}}", "submit"]
+            },
+            "description": "Submit jawaban quiz untuk seorang anak dan mencatat progress.\n\nField `submissions` (perhatikan: nama field PascalCase karena struct Go tidak punya json tag):\n- `QuestionID` (UUID, wajib)\n- `AnswerIDs` (array UUID, untuk multiple_choice)\n- `AnswerText` (string, untuk fill_in_the_blank)\n\nSet variable `quizId` dan `childId` terlebih dahulu."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
